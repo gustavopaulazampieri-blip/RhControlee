@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 // ── Types ──────────────────────────────────────────────────────────────
-export type OcorrenciaTipo = "falta" | "atestado" | "troca" | "folga" | "hora_extra";
+export type OcorrenciaTipo = "falta" | "atestado" | "troca" | "folga" | "hora_extra" | "outros";
 
 export interface Unidade {
   id: string;
@@ -26,6 +26,8 @@ export interface Ocorrencia {
   tipo: OcorrenciaTipo;
   data: string;
   justificativa: string | null;
+  horario_entrada: string | null;
+  horario_saida: string | null;
   criado_por: string;
   created_at: string;
   updated_at: string;
@@ -283,6 +285,8 @@ export function useCreateOcorrencia() {
       tipo: OcorrenciaTipo;
       data: string;
       justificativa?: string;
+      horario_entrada?: string;
+      horario_saida?: string;
     }) => {
       const {
         data: { user },
@@ -292,6 +296,8 @@ export function useCreateOcorrencia() {
         tipo: values.tipo,
         data: values.data,
         justificativa: values.justificativa,
+        horario_entrada: values.horario_entrada || null,
+        horario_saida: values.horario_saida || null,
         criado_por: user!.id,
       });
       if (error) throw error;
@@ -315,6 +321,8 @@ export function useUpdateOcorrencia() {
       tipo: OcorrenciaTipo;
       data: string;
       justificativa?: string;
+      horario_entrada?: string;
+      horario_saida?: string;
     }) => {
       const { error } = await supabase.from("ocorrencias").update(values).eq("id", id);
       if (error) throw error;
@@ -443,6 +451,7 @@ export const TIPO_LABELS: Record<OcorrenciaTipo, string> = {
   troca: "Troca de Dia",
   folga: "Folga",
   hora_extra: "Hora Extra",
+  outros: "Outros",
 };
 
 export const TIPO_COLORS: Record<OcorrenciaTipo, string> = {
@@ -451,6 +460,7 @@ export const TIPO_COLORS: Record<OcorrenciaTipo, string> = {
   troca: "secondary",
   folga: "success",
   hora_extra: "default",
+  outros: "outline",
 };
 
 export function fmtDate(s: string) {

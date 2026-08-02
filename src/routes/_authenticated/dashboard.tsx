@@ -1,11 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Calendar, FileCheck2, AlertOctagon, TrendingUp } from "lucide-react";
+import {
+  Calendar,
+  FileCheck2,
+  AlertOctagon,
+  TrendingUp,
+  ArrowRight,
+  FilePlus2,
+} from "lucide-react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
-  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -32,6 +38,7 @@ const TIPO_LABEL: Record<OcorrenciaTipo, string> = {
   troca: "Trocas",
   folga: "Folgas",
   hora_extra: "HE",
+  outros: "Outros",
 };
 
 function mesLabel(s: string) {
@@ -45,34 +52,6 @@ function getLast6Months() {
     const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   });
-}
-
-function AlertBanner({ ocorrencias }: { ocorrencias: Ocorrencia[] }) {
-  const now = new Date();
-  const mes = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  const byColab: Record<string, Ocorrencia[]> = {};
-  ocorrencias.forEach((o) => {
-    const nome = o.colaboradores?.nome ?? o.colaborador_id;
-    if (!byColab[nome]) byColab[nome] = [];
-    byColab[nome].push(o);
-  });
-  const alertas = Object.entries(byColab).filter(([, list]) => {
-    const faltasMes = list.filter((o) => o.tipo === "falta" && o.data.startsWith(mes));
-    const atestMes = list.filter((o) => o.tipo === "atestado" && o.data.startsWith(mes));
-    return faltasMes.filter((f) => !atestMes.some((a) => a.data === f.data)).length >= 2;
-  });
-  if (alertas.length === 0) return null;
-  return (
-    <div className="flex gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
-      <span className="text-xl">⚠️</span>
-      <div>
-        <p className="text-sm font-semibold text-red-800">
-          {alertas.length} colaborador(es) com 2+ faltas sem atestado este mês
-        </p>
-        <p className="mt-1 text-xs text-red-700">{alertas.map(([n]) => n).join(" · ")}</p>
-      </div>
-    </div>
-  );
 }
 
 function DashboardPage() {
@@ -125,7 +104,7 @@ function DashboardPage() {
     },
   ];
 
-  const TIPOS: OcorrenciaTipo[] = ["falta", "atestado", "troca", "folga", "hora_extra"];
+  const TIPOS: OcorrenciaTipo[] = ["falta", "atestado", "troca", "folga", "hora_extra", "outros"];
   const tipoData = TIPOS.map((t) => ({
     name: TIPO_LABEL[t],
     value: filtered.filter((o) => o.tipo === t).length,
@@ -133,9 +112,11 @@ function DashboardPage() {
   const unidadeData = unidades
     .map((u) => ({
       name: u.codigo,
-      ocorrencias: all.filter((o) => o.colaboradores?.unidades?.codigo === u.codigo).length,
+      ocorrencias: filtered.filter((o) => o.colaboradores?.unidades?.codigo === u.codigo).length,
     }))
-    .filter((u) => u.ocorrencias > 0);
+    .filter((u) => u.ocorrencias > 0)
+    .sort((a, b) => b.ocorrencias - a.ocorrencias)
+    .slice(0, 8);
 
   const meses = getLast6Months();
   const evoData = meses.map((m) => ({
@@ -147,15 +128,41 @@ function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <section className="page-hero min-h-56">
+        <img
+          src="/brand/equipe-sodexo.jpg"
+          alt="Colaboradores da operação Sodexo"
+          className="absolute inset-y-0 right-0 h-full w-full object-cover object-center opacity-50 md:w-[58%] md:opacity-85"
+        />
+        <div className="relative z-10 max-w-xl p-6 text-white md:p-8">
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-white/70">
+            Sodexo RH
+          </p>
+          <h1 className="font-display text-3xl font-extrabold md:text-4xl">
+            Gestão clara, equipes bem cuidadas.
+          </h1>
+          <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/80">
+            Acompanhe a operação de forma objetiva. Casos que precisam de análise ficam concentrados
+            na área de Alertas.
+          </p>
+          <Link
+            to="/ocorrencias/nova"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-bold text-primary shadow-sm transition hover:bg-white/90"
+          >
+            <FilePlus2 className="h-4 w-4" /> Nova ocorrência <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold md:text-3xl">Dashboard</h1>
+          <h2 className="font-display text-xl font-bold">Resumo da operação</h2>
           <p className="text-sm text-muted-foreground">
-            Visão geral das ocorrências em tempo real.
+            Indicadores consolidados, sem alertas nominais.
           </p>
         </div>
         <Select onValueChange={(v) => setMesFilter(v === "_all" ? "" : v)}>
-          <SelectTrigger className="w-44">
+          <SelectTrigger className="w-44 bg-surface">
             <SelectValue placeholder="Todo o período" />
           </SelectTrigger>
           <SelectContent>
@@ -168,8 +175,6 @@ function DashboardPage() {
           </SelectContent>
         </Select>
       </div>
-
-      <AlertBanner ocorrencias={all} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map((k) => {
@@ -231,7 +236,7 @@ function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Por unidade</CardTitle>
-            <CardDescription>Total geral</CardDescription>
+            <CardDescription>Até 8 unidades mais ativas no período</CardDescription>
           </CardHeader>
           <CardContent className="h-64">
             <ResponsiveContainer width="100%" height="100%">

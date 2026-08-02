@@ -1,6 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Download, Loader2, Pencil, Trash2 } from "lucide-react";
+import {
+  Download,
+  Loader2,
+  Pencil,
+  Trash2,
+  Search,
+  RotateCcw,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,19 +52,22 @@ import {
 
 export const Route = createFileRoute("/_authenticated/painel")({ component: PainelPage });
 
-const TIPOS: OcorrenciaTipo[] = ["falta", "atestado", "troca", "folga", "hora_extra"];
+const TIPOS: OcorrenciaTipo[] = ["falta", "atestado", "troca", "folga", "hora_extra", "outros"];
 const TIPO_EMOJI: Record<OcorrenciaTipo, string> = {
   falta: "🔴",
   atestado: "🟡",
   troca: "🔵",
   folga: "🟢",
   hora_extra: "🟠",
+  outros: "⚪",
 };
 
 function PainelPage() {
   const [tipoFilter, setTipoFilter] = useState("");
   const [unidadeFilter, setUnidadeFilter] = useState("");
   const [periodoFilter, setPeriodoFilter] = useState("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
   const { data: ocorrencias = [], isLoading } = useOcorrencias({
     tipo: tipoFilter || undefined,
@@ -70,12 +82,26 @@ function PainelPage() {
   const [editTipo, setEditTipo] = useState<OcorrenciaTipo>("falta");
   const [editData, setEditData] = useState("");
   const [editJust, setEditJust] = useState("");
+  const [editEntrada, setEditEntrada] = useState("");
+  const [editSaida, setEditSaida] = useState("");
+  const pageSize = 20;
+  const ocorrenciasFiltradas = ocorrencias.filter((o) => {
+    const termo = search.trim().toLocaleLowerCase("pt-BR");
+    if (!termo) return true;
+    return `${o.colaboradores?.nome ?? ""} ${o.colaboradores?.matricula ?? ""}`
+      .toLocaleLowerCase("pt-BR")
+      .includes(termo);
+  });
+  const totalPages = Math.max(1, Math.ceil(ocorrenciasFiltradas.length / pageSize));
+  const ocorrenciasVisiveis = ocorrenciasFiltradas.slice((page - 1) * pageSize, page * pageSize);
 
   const openEdit = (o: Ocorrencia) => {
     setEditing(o);
     setEditTipo(o.tipo);
     setEditData(o.data);
     setEditJust(o.justificativa ?? "");
+    setEditEntrada(o.horario_entrada?.slice(0, 5) ?? "");
+    setEditSaida(o.horario_saida?.slice(0, 5) ?? "");
   };
   const saveEdit = async () => {
     if (!editing) return;
@@ -84,6 +110,8 @@ function PainelPage() {
       tipo: editTipo,
       data: editData,
       justificativa: editJust || undefined,
+      horario_entrada: editTipo === "hora_extra" ? editEntrada : undefined,
+      horario_saida: editTipo === "hora_extra" ? editSaida : undefined,
     });
     setEditing(null);
   };
@@ -113,14 +141,16 @@ function PainelPage() {
   ];
 
   const exportCSV = () => {
-    const header = "Colaborador,Matrícula,Unidade,Tipo,Data,Observação";
-    const rows = ocorrencias.map((o) =>
+    const header = "Colaborador,Matrícula,Unidade,Tipo,Data,Entrada,Saída,Observação";
+    const rows = ocorrenciasFiltradas.map((o) =>
       [
         o.colaboradores?.nome,
         o.colaboradores?.matricula,
         o.colaboradores?.unidades?.codigo,
         o.tipo,
         o.data,
+        o.horario_entrada?.slice(0, 5) ?? "",
+        o.horario_saida?.slice(0, 5) ?? "",
         `"${(o.justificativa ?? "").replace(/"/g, '""')}"`,
       ].join(","),
     );
@@ -157,8 +187,26 @@ function PainelPage() {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <Select onValueChange={(v) => setUnidadeFilter(v === "_all" ? "" : v)}>
+      <div className="filter-bar">
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Buscar colaborador…"
+            className="pl-9"
+          />
+        </div>
+        <Select
+          value={unidadeFilter || "_all"}
+          onValueChange={(v) => {
+            setUnidadeFilter(v === "_all" ? "" : v);
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-44">
             <SelectValue placeholder="Todas as unidades" />
           </SelectTrigger>
@@ -171,7 +219,13 @@ function PainelPage() {
             ))}
           </SelectContent>
         </Select>
-        <Select onValueChange={(v) => setTipoFilter(v === "_all" ? "" : v)}>
+        <Select
+          value={tipoFilter || "_all"}
+          onValueChange={(v) => {
+            setTipoFilter(v === "_all" ? "" : v);
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Todos os tipos" />
           </SelectTrigger>
@@ -184,7 +238,13 @@ function PainelPage() {
             ))}
           </SelectContent>
         </Select>
-        <Select onValueChange={(v) => setPeriodoFilter(v === "_all" ? "" : v)}>
+        <Select
+          value={periodoFilter || "_all"}
+          onValueChange={(v) => {
+            setPeriodoFilter(v === "_all" ? "" : v);
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="w-40">
             <SelectValue placeholder="Todo o período" />
           </SelectTrigger>
@@ -194,6 +254,22 @@ function PainelPage() {
             <SelectItem value="30">Últimos 30 dias</SelectItem>
           </SelectContent>
         </Select>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setSearch("");
+            setUnidadeFilter("");
+            setTipoFilter("");
+            setPeriodoFilter("");
+            setPage(1);
+          }}
+        >
+          <RotateCcw className="mr-2 h-4 w-4" /> Limpar
+        </Button>
+        <span className="ml-auto text-xs font-semibold text-muted-foreground">
+          {ocorrenciasFiltradas.length} registro(s)
+        </span>
       </div>
 
       <Card>
@@ -201,7 +277,7 @@ function PainelPage() {
           <div className="flex justify-center py-16">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : ocorrencias.length === 0 ? (
+        ) : ocorrenciasFiltradas.length === 0 ? (
           <div className="flex flex-col items-center gap-3 py-16 text-muted-foreground">
             <span className="text-4xl opacity-40">📋</span>
             <p className="text-sm">Nenhuma ocorrência encontrada.</p>
@@ -221,7 +297,7 @@ function PainelPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {ocorrencias.map((o) => (
+                {ocorrenciasVisiveis.map((o) => (
                   <TableRow key={o.id}>
                     <TableCell className="font-semibold">
                       {o.colaboradores?.unidades?.codigo ?? "—"}
@@ -233,11 +309,21 @@ function PainelPage() {
                     <TableCell>
                       <OcorrenciaBadge tipo={o.tipo} />
                     </TableCell>
-                    <TableCell className="font-mono text-sm">{fmtDate(o.data)}</TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {fmtDate(o.data)}
+                      {o.tipo === "hora_extra" && o.horario_entrada && o.horario_saida && (
+                        <p className="mt-1 text-[11px] font-sans text-muted-foreground">
+                          {o.horario_entrada.slice(0, 5)}–{o.horario_saida.slice(0, 5)}
+                        </p>
+                      )}
+                    </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {o.profiles?.nome ?? "—"}
                     </TableCell>
-                    <TableCell className="max-w-[160px] truncate text-sm text-muted-foreground">
+                    <TableCell
+                      title={o.justificativa ?? undefined}
+                      className="max-w-[180px] truncate text-sm text-muted-foreground"
+                    >
                       {o.justificativa ?? "—"}
                     </TableCell>
                     <TableCell>
@@ -270,6 +356,32 @@ function PainelPage() {
         )}
       </Card>
 
+      {ocorrenciasFiltradas.length > pageSize && (
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">
+            Página {page} de {totalPages}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              <ChevronLeft className="mr-1 h-4 w-4" /> Anterior
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Próxima <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -299,6 +411,26 @@ function PainelPage() {
               <Label>Data</Label>
               <Input type="date" value={editData} onChange={(e) => setEditData(e.target.value)} />
             </div>
+            {editTipo === "hora_extra" && (
+              <div className="grid gap-3 rounded-lg border border-orange-200 bg-orange-50/60 p-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Entrada</Label>
+                  <Input
+                    type="time"
+                    value={editEntrada}
+                    onChange={(e) => setEditEntrada(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Saída</Label>
+                  <Input
+                    type="time"
+                    value={editSaida}
+                    onChange={(e) => setEditSaida(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Observação</Label>
               <Textarea value={editJust} onChange={(e) => setEditJust(e.target.value)} rows={3} />

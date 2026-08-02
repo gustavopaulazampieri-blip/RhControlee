@@ -79,20 +79,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PontoRH — Controle de Ocorrências" },
+      { title: "Sodexo RH — Gestão de Ocorrências" },
       {
         name: "description",
         content:
-          "Sistema PontoRH para registro e acompanhamento de ocorrências (faltas, atestados, trocas, folgas e horas extras) da operação Electrolux · Sodexo.",
+          "Sistema Sodexo RH para registro e acompanhamento de ocorrências da operação Electrolux.",
       },
-      { property: "og:title", content: "PontoRH — Controle de Ocorrências" },
+      { property: "og:title", content: "Sodexo RH — Gestão de Ocorrências" },
       {
         property: "og:description",
         content: "Registre e acompanhe ocorrências de RH em tempo real.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "PontoRH" },
-      { name: "twitter:card", content: "summary" },
+      { property: "og:site_name", content: "Sodexo RH" },
+      { property: "og:image", content: "/og.png" },
+      { property: "og:image:alt", content: "Sodexo RH — Gestão clara, equipes bem cuidadas." },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "/og.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

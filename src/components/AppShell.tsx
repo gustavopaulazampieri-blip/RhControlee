@@ -74,13 +74,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Sheet>
 
         <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-white p-1">
-            <Logo className="h-8 w-8" />
+          <div className="rounded-xl bg-white p-1.5 shadow-sm">
+            <Logo className="h-7 w-7 object-contain" />
           </div>
           <div className="leading-tight">
-            <p className="font-display text-base font-bold text-white">PontoRH</p>
-            <p className="text-[10px] uppercase tracking-widest text-white/60">
-              Electrolux · Sodexo
+            <p className="font-display text-base font-bold text-white">Sodexo RH</p>
+            <p className="text-[10px] uppercase tracking-widest text-white/70">
+              Gestão de ocorrências
             </p>
           </div>
         </div>
@@ -142,17 +142,15 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
                 : "text-muted-foreground hover:bg-accent hover:text-foreground",
             )}
           >
-            {active && (
-              <span className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-primary" />
-            )}
+            {active && <span className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-primary" />}
             <Icon className={cn("h-4 w-4 shrink-0", active && "text-primary")} />
             {item.label}
           </Link>
         );
       })}
       <div className="mt-auto border-t border-border pt-4 text-[11px] leading-relaxed text-muted-foreground">
-        <p className="px-3 font-semibold text-foreground">PontoRH v2.0</p>
-        <p className="px-3">Dados sincronizados em tempo real</p>
+        <p className="px-3 font-semibold text-foreground">Sodexo RH</p>
+        <p className="px-3">Operação Electrolux · dados em tempo real</p>
       </div>
     </nav>
   );

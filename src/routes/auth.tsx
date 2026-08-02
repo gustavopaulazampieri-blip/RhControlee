@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Logo } from "@/components/Logo";
 
 const authSchema = z.object({
   email: z.string().email("E-mail inválido").max(255),
@@ -140,103 +139,150 @@ function AuthPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[image:var(--gradient-brand)] px-4 py-12">
-      <div className="w-full max-w-md">
-        <div className="mb-6 flex flex-col items-center gap-3 text-center">
-          <div className="rounded-2xl bg-surface p-3 shadow-md">
-            <Logo className="h-10 w-10" />
+    <div className="flex min-h-screen items-center justify-center bg-[#eef1fb] px-4 py-8">
+      <div className="grid w-full max-w-6xl overflow-hidden rounded-3xl bg-white shadow-2xl lg:grid-cols-[1.15fr_0.85fr]">
+        <section className="relative hidden min-h-[720px] overflow-hidden lg:block">
+          <img
+            src="/brand/equipe-sodexo.jpg"
+            alt="Equipe Sodexo"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#182b83] via-[#182b83]/35 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 p-10 text-white">
+            <img
+              src="/brand/sodexo-logo.webp"
+              alt="Sodexo"
+              className="mb-8 h-16 w-auto rounded-xl bg-white px-4 py-2 object-contain"
+            />
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/70">
+              Pessoas no centro da operação
+            </p>
+            <h1 className="mt-3 max-w-lg font-display text-4xl font-extrabold leading-tight">
+              Cuidar de quem faz acontecer começa com uma gestão mais simples.
+            </h1>
           </div>
-          <div>
-            <h1 className="font-display text-2xl font-extrabold text-white">PontoRH</h1>
-            <p className="text-xs uppercase tracking-widest text-white/60">Electrolux · Sodexo</p>
-          </div>
-        </div>
-
-        <Card className="overflow-hidden p-0 shadow-md">
-          <Tabs value={tab} onValueChange={(v) => setTab(v as "signin" | "signup")}>
-            <TabsList className="grid w-full grid-cols-2 rounded-none border-b bg-surface-muted p-0 h-auto">
-              <TabsTrigger value="signin" className="rounded-none py-3">
-                Entrar
-              </TabsTrigger>
-              <TabsTrigger value="signup" className="rounded-none py-3">
-                Criar conta
-              </TabsTrigger>
-            </TabsList>
-
-            <div className="p-6">
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={handleGoogle}
-                disabled={loading}
-              >
-                <GoogleIcon className="mr-2 h-4 w-4" />
-                Continuar com Google
-              </Button>
-
-              <div className="my-4 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
-                <div className="h-px flex-1 bg-border" />
-                ou
-                <div className="h-px flex-1 bg-border" />
-              </div>
-
-              <TabsContent value="signin" className="mt-0 space-y-4">
-                <form className="space-y-4" onSubmit={handleSignIn}>
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-email">E-mail</Label>
-                    <Input id="signin-email" name="email" type="email" required autoComplete="email" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password">Senha</Label>
-                    <Input
-                      id="signin-password"
-                      name="password"
-                      type="password"
-                      required
-                      autoComplete="current-password"
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Entrar"}
-                  </Button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="signup" className="mt-0 space-y-4">
-                <form className="space-y-4" onSubmit={handleSignUp}>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-nome">Nome</Label>
-                    <Input id="signup-nome" name="nome" type="text" required autoComplete="name" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">E-mail</Label>
-                    <Input id="signup-email" name="email" type="email" required autoComplete="email" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Senha</Label>
-                    <Input
-                      id="signup-password"
-                      name="password"
-                      type="password"
-                      required
-                      minLength={8}
-                      autoComplete="new-password"
-                    />
-                    <p className="text-xs text-muted-foreground">Mínimo 8 caracteres.</p>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Criar conta"}
-                  </Button>
-                </form>
-              </TabsContent>
+        </section>
+        <div className="w-full max-w-md justify-self-center p-6 py-10 sm:p-10 lg:self-center">
+          <div className="mb-6 flex flex-col items-center gap-3 text-center">
+            <img
+              src="/brand/sodexo-logo.webp"
+              alt="Sodexo"
+              className="h-12 w-auto object-contain lg:hidden"
+            />
+            <div>
+              <h2 className="font-display text-2xl font-extrabold text-foreground">
+                Bem-vindo ao Sodexo RH
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Acesse a gestão de ocorrências da operação.
+              </p>
             </div>
-          </Tabs>
-        </Card>
+          </div>
 
-        <p className="mt-4 text-center text-xs text-white/70">
-          Acesso restrito a colaboradores autorizados.
-        </p>
+          <Card className="overflow-hidden p-0 shadow-none">
+            <Tabs value={tab} onValueChange={(v) => setTab(v as "signin" | "signup")}>
+              <TabsList className="grid w-full grid-cols-2 rounded-none border-b bg-surface-muted p-0 h-auto">
+                <TabsTrigger value="signin" className="rounded-none py-3">
+                  Entrar
+                </TabsTrigger>
+                <TabsTrigger value="signup" className="rounded-none py-3">
+                  Criar conta
+                </TabsTrigger>
+              </TabsList>
+
+              <div className="p-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleGoogle}
+                  disabled={loading}
+                >
+                  <GoogleIcon className="mr-2 h-4 w-4" />
+                  Continuar com Google
+                </Button>
+
+                <div className="my-4 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
+                  <div className="h-px flex-1 bg-border" />
+                  ou
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+
+                <TabsContent value="signin" className="mt-0 space-y-4">
+                  <form className="space-y-4" onSubmit={handleSignIn}>
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-email">E-mail</Label>
+                      <Input
+                        id="signin-email"
+                        name="email"
+                        type="email"
+                        required
+                        autoComplete="email"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-password">Senha</Label>
+                      <Input
+                        id="signin-password"
+                        name="password"
+                        type="password"
+                        required
+                        autoComplete="current-password"
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Entrar"}
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="signup" className="mt-0 space-y-4">
+                  <form className="space-y-4" onSubmit={handleSignUp}>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-nome">Nome</Label>
+                      <Input
+                        id="signup-nome"
+                        name="nome"
+                        type="text"
+                        required
+                        autoComplete="name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">E-mail</Label>
+                      <Input
+                        id="signup-email"
+                        name="email"
+                        type="email"
+                        required
+                        autoComplete="email"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Senha</Label>
+                      <Input
+                        id="signup-password"
+                        name="password"
+                        type="password"
+                        required
+                        minLength={8}
+                        autoComplete="new-password"
+                      />
+                      <p className="text-xs text-muted-foreground">Mínimo 8 caracteres.</p>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Criar conta"}
+                    </Button>
+                  </form>
+                </TabsContent>
+              </div>
+            </Tabs>
+          </Card>
+
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Acesso restrito a colaboradores autorizados.
+          </p>
+        </div>
       </div>
     </div>
   );

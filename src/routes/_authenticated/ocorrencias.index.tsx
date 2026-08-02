@@ -33,7 +33,6 @@ import { OcorrenciaBadge } from "@/components/OcorrenciaBadge";
 import {
   useOcorrencias,
   useUnidades,
-  useColaboradores,
   useUpdateOcorrencia,
   useDeleteOcorrencia,
   fmtDate,
@@ -46,13 +45,14 @@ export const Route = createFileRoute("/_authenticated/ocorrencias/")({
   component: OcorrenciasPage,
 });
 
-const TIPOS: OcorrenciaTipo[] = ["falta", "atestado", "troca", "folga", "hora_extra"];
+const TIPOS: OcorrenciaTipo[] = ["falta", "atestado", "troca", "folga", "hora_extra", "outros"];
 const TIPO_EMOJI: Record<OcorrenciaTipo, string> = {
   falta: "🔴",
   atestado: "🟡",
   troca: "🔵",
   folga: "🟢",
   hora_extra: "🟠",
+  outros: "⚪",
 };
 
 function OcorrenciasPage() {
@@ -73,6 +73,8 @@ function OcorrenciasPage() {
   const [editTipo, setEditTipo] = useState<OcorrenciaTipo>("falta");
   const [editData, setEditData] = useState("");
   const [editJust, setEditJust] = useState("");
+  const [editEntrada, setEditEntrada] = useState("");
+  const [editSaida, setEditSaida] = useState("");
   const updateMut = useUpdateOcorrencia();
 
   const openEdit = (o: Ocorrencia) => {
@@ -80,6 +82,8 @@ function OcorrenciasPage() {
     setEditTipo(o.tipo);
     setEditData(o.data);
     setEditJust(o.justificativa ?? "");
+    setEditEntrada(o.horario_entrada?.slice(0, 5) ?? "");
+    setEditSaida(o.horario_saida?.slice(0, 5) ?? "");
   };
 
   const saveEdit = async () => {
@@ -89,6 +93,8 @@ function OcorrenciasPage() {
       tipo: editTipo,
       data: editData,
       justificativa: editJust || undefined,
+      horario_entrada: editTipo === "hora_extra" ? editEntrada : undefined,
+      horario_saida: editTipo === "hora_extra" ? editSaida : undefined,
     });
     setEditing(null);
   };
@@ -182,6 +188,11 @@ function OcorrenciasPage() {
                   <TableRow key={o.id}>
                     <TableCell className="font-mono text-sm whitespace-nowrap">
                       {fmtDate(o.data)}
+                      {o.tipo === "hora_extra" && o.horario_entrada && o.horario_saida && (
+                        <p className="mt-1 font-sans text-[11px] text-muted-foreground">
+                          {o.horario_entrada.slice(0, 5)}–{o.horario_saida.slice(0, 5)}
+                        </p>
+                      )}
                     </TableCell>
                     <TableCell>
                       <p className="font-semibold">{o.colaboradores?.nome ?? "—"}</p>
@@ -259,6 +270,26 @@ function OcorrenciasPage() {
               <Label>Data</Label>
               <Input type="date" value={editData} onChange={(e) => setEditData(e.target.value)} />
             </div>
+            {editTipo === "hora_extra" && (
+              <div className="grid gap-3 rounded-lg border border-orange-200 bg-orange-50/60 p-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Entrada</Label>
+                  <Input
+                    type="time"
+                    value={editEntrada}
+                    onChange={(e) => setEditEntrada(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Saída</Label>
+                  <Input
+                    type="time"
+                    value={editSaida}
+                    onChange={(e) => setEditSaida(e.target.value)}
+                  />
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Observação</Label>
               <Textarea value={editJust} onChange={(e) => setEditJust(e.target.value)} rows={3} />

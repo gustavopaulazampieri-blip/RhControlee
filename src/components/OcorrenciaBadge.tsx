@@ -8,6 +8,7 @@ const EMOJI: Record<OcorrenciaTipo, string> = {
   troca: "🔵",
   folga: "🟢",
   hora_extra: "🟠",
+  outros: "⚪",
 };
 
 const VARIANT: Record<OcorrenciaTipo, "destructive" | "secondary" | "outline" | "default"> = {
@@ -16,6 +17,7 @@ const VARIANT: Record<OcorrenciaTipo, "destructive" | "secondary" | "outline" | 
   troca: "outline",
   folga: "secondary",
   hora_extra: "default",
+  outros: "outline",
 };
 
 export function OcorrenciaBadge({ tipo }: { tipo: OcorrenciaTipo }) {

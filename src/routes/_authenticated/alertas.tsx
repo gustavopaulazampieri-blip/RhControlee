@@ -1,8 +1,24 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangle, Clock, ArrowLeftRight } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import {
+  AlertTriangle,
+  Clock,
+  ArrowLeftRight,
+  CheckCircle2,
+  SlidersHorizontal,
+  ArrowRight,
+} from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useOcorrencias, fmtDate, type Ocorrencia } from "@/lib/queries";
 
 export const Route = createFileRoute("/_authenticated/alertas")({ component: AlertasPage });
@@ -89,8 +105,15 @@ const ALERTA_CONFIG = {
 function AlertasPage() {
   const { data: ocorrencias = [], isLoading } = useOcorrencias();
   const alertas = buildAlertas(ocorrencias);
+  const [unidade, setUnidade] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const unidades = [...new Set(alertas.map((a) => a.unidade))].sort();
+  const filtrados = alertas.filter(
+    (a) => (!unidade || a.unidade === unidade) && (!categoria || a.tipo === categoria),
+  );
 
-  const grouped = alertas.reduce<Record<string, Alerta[]>>((acc, a) => {
+  const grouped = filtrados.reduce<Record<string, Alerta[]>>((acc, a) => {
     if (!acc[a.tipo]) acc[a.tipo] = [];
     acc[a.tipo].push(a);
     return acc;
@@ -101,17 +124,70 @@ function AlertasPage() {
       <div>
         <h1 className="font-display text-2xl font-bold md:text-3xl">Alertas</h1>
         <p className="text-sm text-muted-foreground">
-          Colaboradores com ocorrências que precisam de atenção este mês.
+          Pendências organizadas por tipo para facilitar a tomada de decisão.
         </p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        {Object.entries(ALERTA_CONFIG).map(([tipo, cfg]) => {
+          const Icon = cfg.icon;
+          const total = alertas.filter((a) => a.tipo === tipo).length;
+          return (
+            <Card key={tipo} className="overflow-hidden">
+              <CardContent className="flex items-center justify-between p-4">
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground">{cfg.label}</p>
+                  <p className="mt-1 text-2xl font-extrabold">{total}</p>
+                </div>
+                <div className={`rounded-xl border p-2.5 ${cfg.cls}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <div className="filter-bar">
+        <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+        <Select onValueChange={(v) => setUnidade(v === "_all" ? "" : v)}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Todas as unidades" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">Todas as unidades</SelectItem>
+            {unidades.map((u) => (
+              <SelectItem key={u} value={u}>
+                {u}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select onValueChange={(v) => setCategoria(v === "_all" ? "" : v)}>
+          <SelectTrigger className="w-56">
+            <SelectValue placeholder="Todos os tipos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="_all">Todos os tipos</SelectItem>
+            {Object.entries(ALERTA_CONFIG).map(([tipo, cfg]) => (
+              <SelectItem key={tipo} value={tipo}>
+                {cfg.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <span className="ml-auto text-xs font-semibold text-muted-foreground">
+          {filtrados.length} pendência(s)
+        </span>
       </div>
 
       {isLoading ? (
         <div className="py-16 text-center text-muted-foreground">Carregando…</div>
-      ) : alertas.length === 0 ? (
+      ) : filtrados.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
-            <span className="text-4xl">✅</span>
-            <p className="text-sm">Nenhum alerta no momento. Tudo certo!</p>
+            <CheckCircle2 className="h-10 w-10 text-green-600" />
+            <p className="text-sm">Nenhum alerta para os filtros selecionados.</p>
           </CardContent>
         </Card>
       ) : (
@@ -128,7 +204,7 @@ function AlertasPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {list.map((a, i) => (
+                {list.slice(0, expanded[tipo] ? undefined : 5).map((a, i) => (
                   <div
                     key={i}
                     className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-white/70 px-4 py-3 text-sm"
@@ -142,6 +218,23 @@ function AlertasPage() {
                     </div>
                   </div>
                 ))}
+                {list.length > 5 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => setExpanded((s) => ({ ...s, [tipo]: !s[tipo] }))}
+                  >
+                    {expanded[tipo] ? "Mostrar menos" : `Ver mais ${list.length - 5} caso(s)`}
+                  </Button>
+                )}
+                <div className="flex justify-end pt-2">
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/painel">
+                      Analisar no Painel Geral <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           );

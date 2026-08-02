@@ -1,6 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Pencil, UserX, Loader2 } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  UserX,
+  Loader2,
+  Building2,
+  ChevronLeft,
+  ChevronRight,
+  Users,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,7 +53,9 @@ export const Route = createFileRoute("/_authenticated/colaboradores")({
 function ColaboradoresPage() {
   const [search, setSearch] = useState("");
   const [unidadeFilter, setUnidadeFilter] = useState("");
+  const [page, setPage] = useState(1);
   const { data: colaboradores = [], isLoading } = useColaboradores(search, unidadeFilter);
+  const { data: todosColaboradores = [] } = useColaboradores();
   const { data: unidades = [] } = useUnidades();
   const upsert = useUpsertColaborador();
   const deactivate = useDeleteColaborador();
@@ -53,6 +64,9 @@ function ColaboradoresPage() {
   const [nome, setNome] = useState("");
   const [matricula, setMatricula] = useState("");
   const [unidadeId, setUnidadeId] = useState("");
+  const pageSize = 15;
+  const totalPages = Math.max(1, Math.ceil(colaboradores.length / pageSize));
+  const colaboradoresVisiveis = colaboradores.slice((page - 1) * pageSize, page * pageSize);
 
   const openCreate = () => {
     setNome("");
@@ -93,26 +107,81 @@ function ColaboradoresPage() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Card>
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
+              <Users className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground">Colaboradores ativos</p>
+              <p className="text-2xl font-extrabold">{todosColaboradores.length}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 p-4">
+            <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
+              <Building2 className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground">Unidades cadastradas</p>
+              <p className="text-2xl font-extrabold">{unidades.length}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="overflow-x-auto pb-1">
+        <div className="flex min-w-max gap-2">
+          <Button
+            variant={!unidadeFilter ? "default" : "outline"}
+            size="sm"
+            onClick={() => {
+              setUnidadeFilter("");
+              setPage(1);
+            }}
+          >
+            Todas{" "}
+            <Badge variant="secondary" className="ml-2">
+              {todosColaboradores.length}
+            </Badge>
+          </Button>
+          {unidades.map((u) => {
+            const count = todosColaboradores.filter((c) => c.unidade_id === u.id).length;
+            return (
+              <Button
+                key={u.id}
+                variant={unidadeFilter === u.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  setUnidadeFilter(u.id);
+                  setPage(1);
+                }}
+              >
+                {u.codigo}
+                <Badge variant="secondary" className="ml-2">
+                  {count}
+                </Badge>
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="filter-bar">
         <Input
           placeholder="🔍 Buscar por nome…"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-60"
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          className="w-full sm:w-72"
         />
-        <Select onValueChange={(v) => setUnidadeFilter(v === "_all" ? "" : v)}>
-          <SelectTrigger className="w-44">
-            <SelectValue placeholder="Todas as unidades" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="_all">Todas as unidades</SelectItem>
-            {unidades.map((u) => (
-              <SelectItem key={u.id} value={u.id}>
-                {u.codigo}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <span className="ml-auto text-xs font-semibold text-muted-foreground">
+          {colaboradores.length} resultado(s)
+        </span>
       </div>
 
       <Card>
@@ -141,7 +210,7 @@ function ColaboradoresPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {colaboradores.map((c) => (
+                {colaboradoresVisiveis.map((c) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-semibold">{c.nome}</TableCell>
                     <TableCell className="font-mono text-sm">{c.matricula}</TableCell>
@@ -185,6 +254,32 @@ function ColaboradoresPage() {
           </div>
         )}
       </Card>
+
+      {colaboradores.length > pageSize && (
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">
+            Página {page} de {totalPages}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              <ChevronLeft className="mr-1 h-4 w-4" /> Anterior
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Próxima <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       <Dialog open={modal.open} onOpenChange={(o) => !o && setModal({ open: false })}>
         <DialogContent className="max-w-md">
