@@ -128,30 +128,13 @@ function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <section className="page-hero min-h-56">
+      <section className="overflow-hidden rounded-2xl border border-primary/15 bg-[#0f2a82] shadow-md">
         <img
-          src="/brand/equipe-sodexo.jpg"
-          alt="Colaboradores da operação Sodexo"
-          className="absolute inset-y-0 right-0 h-full w-full object-cover object-center opacity-50 md:w-[58%] md:opacity-85"
+          src="/brand/sodexo-rh-inicial.png"
+          alt="Sodexo RH — Gestão clara, equipes bem cuidadas"
+          className="block h-auto w-full"
+          fetchPriority="high"
         />
-        <div className="relative z-10 max-w-xl p-6 text-white md:p-8">
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-white/70">
-            Sodexo RH
-          </p>
-          <h1 className="font-display text-3xl font-extrabold md:text-4xl">
-            Gestão clara, equipes bem cuidadas.
-          </h1>
-          <p className="mt-3 max-w-lg text-sm leading-relaxed text-white/80">
-            Acompanhe a operação de forma objetiva. Casos que precisam de análise ficam concentrados
-            na área de Alertas.
-          </p>
-          <Link
-            to="/ocorrencias/nova"
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-bold text-primary shadow-sm transition hover:bg-white/90"
-          >
-            <FilePlus2 className="h-4 w-4" /> Nova ocorrência <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
       </section>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -161,19 +144,27 @@ function DashboardPage() {
             Indicadores consolidados, sem alertas nominais.
           </p>
         </div>
-        <Select onValueChange={(v) => setMesFilter(v === "_all" ? "" : v)}>
-          <SelectTrigger className="w-44 bg-surface">
-            <SelectValue placeholder="Todo o período" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="_all">Todo o período</SelectItem>
-            {mesesOpts.map((m) => (
-              <SelectItem key={m} value={m}>
-                {mesLabel(m)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to="/ocorrencias/nova"
+            className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
+          >
+            <FilePlus2 className="h-4 w-4" /> Nova ocorrência <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Select onValueChange={(v) => setMesFilter(v === "_all" ? "" : v)}>
+            <SelectTrigger className="w-44 bg-surface">
+              <SelectValue placeholder="Todo o período" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_all">Todo o período</SelectItem>
+              {mesesOpts.map((m) => (
+                <SelectItem key={m} value={m}>
+                  {mesLabel(m)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
