@@ -5,7 +5,6 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -125,42 +124,32 @@ function AuthPage() {
 
   const handleGoogle = async () => {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+    const destination = safeRedirect(search.redirect) ?? "/dashboard";
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: new URL(destination, window.location.origin).toString(),
+      },
     });
-    if (result.error) {
+    if (error) {
       setLoading(false);
-      toast.error("Não foi possível entrar com Google");
+      toast.error(
+        "Não foi possível iniciar o acesso com Google. Verifique a configuração do provedor.",
+      );
       return;
     }
-    if (result.redirected) return;
-    await afterAuth();
-    setLoading(false);
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#eef1fb] px-4 py-8">
-      <div className="grid w-full max-w-6xl overflow-hidden rounded-3xl bg-white shadow-2xl lg:grid-cols-[1.15fr_0.85fr]">
-        <section className="relative hidden min-h-[720px] overflow-hidden lg:block">
+      <div className="grid w-full max-w-7xl overflow-hidden rounded-3xl bg-white shadow-2xl lg:grid-cols-[1.35fr_0.65fr]">
+        <section className="hidden min-h-[650px] items-center overflow-hidden bg-[#0f2a82] lg:flex">
           <img
-            src="/brand/equipe-sodexo.jpg"
-            alt="Equipe Sodexo"
-            className="absolute inset-0 h-full w-full object-cover"
+            src="/brand/sodexo-rh-inicial.png"
+            alt="Sodexo RH — Gestão clara, equipes bem cuidadas"
+            className="block h-auto w-full object-contain"
+            fetchPriority="high"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#182b83] via-[#182b83]/35 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-10 text-white">
-            <img
-              src="/brand/sodexo-logo.webp"
-              alt="Sodexo"
-              className="mb-8 h-16 w-auto rounded-xl bg-white px-4 py-2 object-contain"
-            />
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-white/70">
-              Pessoas no centro da operação
-            </p>
-            <h1 className="mt-3 max-w-lg font-display text-4xl font-extrabold leading-tight">
-              Cuidar de quem faz acontecer começa com uma gestão mais simples.
-            </h1>
-          </div>
         </section>
         <div className="w-full max-w-md justify-self-center p-6 py-10 sm:p-10 lg:self-center">
           <div className="mb-6 flex flex-col items-center gap-3 text-center">
