@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { SiteFooter } from "@/components/SiteFooter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const authSchema = z.object({
@@ -268,9 +269,10 @@ function AuthPage() {
             </Tabs>
           </Card>
 
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            Acesso restrito a colaboradores autorizados.
-          </p>
+          <div className="mt-4 space-y-2 text-center text-xs text-muted-foreground">
+            <p>Acesso restrito a colaboradores autorizados.</p>
+            <SiteFooter />
+          </div>
         </div>
       </div>
     </div>
